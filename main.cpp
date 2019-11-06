@@ -1,17 +1,26 @@
 #include "common.h"
 #include "objects.h"
 #include "Painter.h"
+#include "Game.h"
+#include <unistd.h>
+
+
+void* listenKey(void* ptr){
+    Game* g = (Game*)ptr;
+    while(1){
+        usleep(10000);
+        system("stty -icanon -echo");
+        char ch = getchar();
+        system("stty icanon echo");
+        g->inputHandler(ch);
+    }
+}
 
 int main() {
-    for (int i = 0; i < NR_ROW; ++i) {
-        for (int j = 0; j < NR_COL; ++j) {
-            Painter::addObject(Grassland(i * (HEIGHT / NR_ROW), j * (WIDTH / NR_COL)));
-        }
-    }
-//    Grassland grassland1(0,0);
-//    Grassland grassland2(7,7);
-//    Painter::addObject(grassland1);
-//    Painter::addObject(grassland2);
-    Painter::updateScreen();
+    Game g;
+    g.init_screen();
+    pthread_t t;
+    pthread_create(&t, NULL, listenKey, (void*)(&g));
+    while(1);
     return 0;
 }

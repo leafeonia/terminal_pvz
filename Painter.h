@@ -14,6 +14,7 @@ private:
     static void drawObject(const Object &o);
 public:
     static void addObject(const Object &o);
+    static void updateObject(const Object &o, int x,int y);
     static void deleteObject(const Object &o);
     static void updateScreen();
 };
