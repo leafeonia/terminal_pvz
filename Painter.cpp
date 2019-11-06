@@ -37,7 +37,11 @@ void Painter::updateScreen() {
     printf("\033[H");
     for (int i = 0; i < HEIGHT; ++i) {
         for (int j = 0; j < WIDTH; ++j) {
-            cout << board[i][j].front;
+            int color = board[i][j].back;
+//            printf("%d;%d;%d",(color&0xff0000) >> 16, (color&0xff00) >> 8, color&0xff);
+            printf("\033[48;2;%d;%d;%dm",(color&0xff0000) >> 16, (color&0xff00) >> 8, color&0xff);
+            cout << board[i][j].ch;
+            cout << "\033[0m";
         }
         cout << endl;
     }
