@@ -11,17 +11,26 @@
 
 class Game{
 private:
-    int sunshine, score;
+    static int sunshine, score;
     int shop_idx, board_row, board_col;
     vector<int> shop_col;
     int shop_row;
+    int sunshine_timer; //automatic sunshine
     string status;
     Cursor cursor;
+    InfoBoard infoBoard;
     pthread_mutex_t mutex_lock;
+    static vector<Unit*> units;
 public:
+    friend class InfoBoard;
     Game();
     void init_screen();
     void inputHandler(char ch);
+    void sendTimeSignal();
+    static void addUnit(Unit* unit);
+    static void addSunshine(int num);
+    static bool consumeSunshine(int num);
+    static void addScore(int num);
 };
 
 #endif //PVZ_GAME_H

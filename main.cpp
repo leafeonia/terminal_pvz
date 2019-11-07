@@ -21,6 +21,9 @@ int main() {
     g.init_screen();
     pthread_t t;
     pthread_create(&t, NULL, listenKey, (void*)(&g));
-    while(1);
+    while(1){
+        usleep(500000);
+        g.sendTimeSignal();
+    }
     return 0;
 }

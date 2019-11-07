@@ -34,27 +34,35 @@ public:
     Cursor(int r, int c);
 };
 
+
 class Unit: public Object{
-private:
-    int hp, attack;
 public:
-    Unit(int h,int a){hp = h; attack = a;}
+    virtual void clockHandler()=0;
+};
+
+class InfoBoard: public Unit {
+public:
+    InfoBoard();
+    void clockHandler();
 };
 
 class Plant: public Unit{
-private:
-    int cost;
+protected:
+    int hp, attack, cost, timer;
 public:
-    Plant(int hp, int atk, int c):Unit(hp, atk){cost = c;}
+    Plant(int h, int a, int c){hp = h; attack = a;cost = c;timer = 0;}
 };
 
 class PeanutShooter: public Plant{
 public:
     PeanutShooter(int r, int c);
+    void clockHandler();
 };
 
 class Sunflower: public Plant{
 public:
     Sunflower(int r,int c);
+    void clockHandler();
 };
+
 #endif //PVZ_OBJECTS_H

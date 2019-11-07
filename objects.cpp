@@ -4,6 +4,7 @@
 
 #include "objects.h"
 #include "Painter.h"
+#include "Game.h"
 
 int Object::cnt = 0;
 
@@ -45,7 +46,7 @@ Shop::Shop() {
                 line.push_back(Pixel(' ', colors[j % colors.size()]));
             }
         }
-        else if(i == h / 2 - 1){
+        else if(i == h / 2){
             for (int j = 0; j < 8; ++j) {
                 line.push_back(Pixel(' ', DARKPURPLE));
             }
@@ -82,6 +83,24 @@ Cursor::Cursor(int r, int c) {
     pixels.push_back(line);
 }
 
+InfoBoard::InfoBoard() {
+    row = HEIGHT + 2;
+    col = WIDTH - 30;
+    priority = PRI_UNIT;
+    vector<Pixel> line;
+    for(auto ch: "sunshine: 0   score: 0") line.push_back(Pixel(ch, DARKPURPLE));
+    pixels.push_back(line);
+}
+
+void InfoBoard::clockHandler() {
+    vector<Pixel> line;
+    string info = "sunshine: " + to_string(Game::sunshine) + "   score: " + to_string(Game::score);
+    for(auto ch: info) line.push_back(Pixel(ch, DARKPURPLE));
+    vector<vector<Pixel> > tmp;
+    tmp.push_back(line);
+    Painter::updateObject(*this, row, col, tmp);
+}
+
 PeanutShooter::PeanutShooter(int r, int c):Plant(100, 100, 100) {
     row = r;
     col = c;
@@ -103,6 +122,10 @@ PeanutShooter::PeanutShooter(int r, int c):Plant(100, 100, 100) {
     pixels = Painter::pixmapGenerate(5,5,chars,colors);
 }
 
+void PeanutShooter::clockHandler() {
+    timer++;
+}
+
 Sunflower::Sunflower(int r, int c): Plant(50, 0, 50) {
     row = r;
     col = c;
@@ -122,4 +145,12 @@ Sunflower::Sunflower(int r, int c): Plant(50, 0, 50) {
             RED,RED,RED
     };
     pixels = Painter::pixmapGenerate(5,3,chars,color);
+}
+
+void Sunflower::clockHandler() {
+    timer++;
+    if(timer == 10){
+        timer = 0;
+        Game::addSunshine(50);
+    }
 }

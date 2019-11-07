@@ -7,11 +7,17 @@
 
 Game::Game():cursor(10000,10000) { //I'm so far far away that you can't see me~
     status = "idle";
-    shop_row = HEIGHT + SHOP_HEIGHT / 2 - 1;
+    shop_row = HEIGHT + SHOP_HEIGHT / 2;
     shop_col = vector<int>{5, 32};
     shop_idx = board_row = board_col = 0;
-    mutex_lock = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_init(&mutex_lock, NULL);
+    sunshine_timer = 0;
+//    sunshine = score = 0;
 }
+
+int Game::score = 0;
+int Game::sunshine = 0;
+vector<Unit*> Game::units = vector<Unit*>();
 
 void Game::init_screen() {
     system("clear");
@@ -22,6 +28,7 @@ void Game::init_screen() {
     }
     Painter::addObject(Shop());
     Painter::addObject(cursor);
+    addUnit(&infoBoard);
     Painter::updateScreen();
 }
 
@@ -73,13 +80,49 @@ void Game::inputHandler(char ch) {
         else if(ch == '\n'){
             int pos_row = 1 + board_row * (HEIGHT / NR_ROW);
             int pos_col = 5 + board_col * (WIDTH / NR_COL);
-            if(shop_idx == 0) Painter::addObject(PeanutShooter(pos_row, pos_col));
-            else if(shop_idx == 1) Painter::addObject(Sunflower(pos_row, pos_col));
+            if(shop_idx == 0) {
+                PeanutShooter* peanutShooter = new PeanutShooter(pos_row, pos_col);
+                addUnit(peanutShooter);
+            }
+            else if(shop_idx == 1){
+                Sunflower* sunflower = new Sunflower(pos_row, pos_col);
+                addUnit(sunflower);
+            }
             Painter::updateObject(cursor, 10000, 10000);
             Painter::updateScreen();
             status = "idle";
         }
-
     }
     pthread_mutex_unlock(&mutex_lock);
+}
+
+void Game::addUnit(Unit* unit) {
+    units.push_back(unit);
+    Painter::addObject(*unit);
+}
+
+void Game::addSunshine(int num) {
+    sunshine += num;
+}
+
+bool Game::consumeSunshine(int num) {
+    if(sunshine < num) return false;
+    sunshine -= num;
+    return true;
+}
+
+void Game::addScore(int num) {
+    score += num;
+}
+
+void Game::sendTimeSignal() {
+    sunshine_timer++;
+    if(sunshine_timer == 10){
+        sunshine_timer = 0;
+        addSunshine(50);
+    }
+    for(int i = 0;i < units.size();i++){
+        units[i]->clockHandler();
+    }
+    Painter::updateScreen();
 }
