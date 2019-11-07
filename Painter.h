@@ -14,7 +14,9 @@ private:
     static void drawObject(const Object &o);
 public:
     static void addObject(const Object &o);
-    static void updateObject(const Object &o, int x,int y);
+    static void updateObject(const Object &o, int x, int y);
+    static void updateObject(const Object &o, int x, int y,const vector<vector<Pixel> > &update);
+    static vector<vector<Pixel> > pixmapGenerate(int row, int col, vector<char> chars, vector<int> colors);
     static void deleteObject(const Object &o);
     static void updateScreen();
 };

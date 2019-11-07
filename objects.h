@@ -34,4 +34,27 @@ public:
     Cursor(int r, int c);
 };
 
+class Unit: public Object{
+private:
+    int hp, attack;
+public:
+    Unit(int h,int a){hp = h; attack = a;}
+};
+
+class Plant: public Unit{
+private:
+    int cost;
+public:
+    Plant(int hp, int atk, int c):Unit(hp, atk){cost = c;}
+};
+
+class PeanutShooter: public Plant{
+public:
+    PeanutShooter(int r, int c);
+};
+
+class Sunflower: public Plant{
+public:
+    Sunflower(int r,int c);
+};
 #endif //PVZ_OBJECTS_H

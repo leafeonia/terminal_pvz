@@ -71,6 +71,10 @@ void Game::inputHandler(char ch) {
             Painter::updateScreen();
         }
         else if(ch == '\n'){
+            int pos_row = 1 + board_row * (HEIGHT / NR_ROW);
+            int pos_col = 5 + board_col * (WIDTH / NR_COL);
+            if(shop_idx == 0) Painter::addObject(PeanutShooter(pos_row, pos_col));
+            else if(shop_idx == 1) Painter::addObject(Sunflower(pos_row, pos_col));
             Painter::updateObject(cursor, 10000, 10000);
             Painter::updateScreen();
             status = "idle";

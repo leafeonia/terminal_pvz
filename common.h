@@ -14,6 +14,7 @@ using namespace std;
 #define NR_COL 7
 
 #define PRI_BACKGROUND 0
+#define PRI_UNIT 1
 #define PRI_CURSOR 5
 
 #define WHITE 0xffffff
@@ -22,10 +23,12 @@ using namespace std;
 #define YELLOW 0xffff00
 #define GREEN 0xff66
 #define DARKGREEN 0xcc00
+#define DEEPGREEN 0x6600
 #define INDIGO 0x3399cc
 #define BLUE 0xff
 #define PURPLE 0x6600ff
 #define DARKPURPLE 0x330066
+#define BROWN 0x996666
 
 class Pixel{
 public:

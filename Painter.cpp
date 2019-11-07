@@ -25,11 +25,22 @@ void Painter::addObject(const Object &o) {
 }
 
 void Painter::updateObject(const Object &o, int row, int col) {
-//    cout << "Update" << endl;
     for(auto it = objects.begin();it != objects.end();it++){
         if((*it).id == o.id){
             (*it).row = row;
             (*it).col = col;
+            return;
+        }
+    }
+    cout << "Warning: updateObject didn't find target object" << endl;
+}
+
+void Painter::updateObject(const Object &o, int row, int col,const vector<vector<Pixel> > &update){
+    for(auto it = objects.begin();it != objects.end();it++){
+        if((*it).id == o.id){
+            (*it).row = row;
+            (*it).col = col;
+            (*it).pixels = update;
             return;
         }
     }
@@ -50,4 +61,19 @@ void Painter::updateScreen() {
         }
         cout << endl;
     }
+}
+
+vector<vector<Pixel> > Painter::pixmapGenerate(int row, int col, vector<char> chars, vector<int> colors) {
+    assert(colors.size() >= row * col);
+    vector<vector<Pixel> > ret;
+    int index = 0;
+    for (int i = 0; i < row; ++i) {
+        vector<Pixel> line;
+        for (int j = 0; j < col; ++j) {
+            line.push_back(Pixel(chars[index], colors[index]));
+            index++;
+        }
+        ret.push_back(line);
+    }
+    return ret;
 }
