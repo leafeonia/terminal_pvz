@@ -7,6 +7,7 @@
 
 vector<Object> Painter::objects = vector<Object>();
 vector<vector<Pixel>> Painter::board = vector<vector<Pixel>> (HEIGHT + SHOP_HEIGHT, vector<Pixel>(WIDTH));
+pthread_mutex_t Painter::screen_lock = PTHREAD_MUTEX_INITIALIZER;
 
 void Painter::drawObject(const Object &o) {
     int row = o.row;
@@ -48,6 +49,7 @@ void Painter::updateObject(const Object &o, int row, int col,const vector<vector
 }
 
 void Painter::updateScreen() {
+    pthread_mutex_lock(&screen_lock);
     for(auto line: board) line.clear();
     sort(objects.begin(), objects.end());
     for(auto &object: objects) drawObject(object);
@@ -61,6 +63,7 @@ void Painter::updateScreen() {
         }
         cout << endl;
     }
+    pthread_mutex_unlock(&screen_lock);
 }
 
 vector<vector<Pixel> > Painter::pixmapGenerate(int row, int col, vector<char> chars, vector<int> colors) {

@@ -10,7 +10,7 @@ Game::Game():cursor(10000,10000) { //I'm so far far away that you can't see me~
     shop_row = HEIGHT + SHOP_HEIGHT / 2;
     shop_col = vector<int>{5, 32};
     shop_idx = board_row = board_col = 0;
-    pthread_mutex_init(&mutex_lock, NULL);
+//    pthread_mutex_init(&mutex_lock, NULL);
     sunshine_timer = 0;
 //    sunshine = score = 0;
 }
@@ -33,7 +33,7 @@ void Game::init_screen() {
 }
 
 void Game::inputHandler(char ch) {
-    pthread_mutex_lock(&mutex_lock);
+//    pthread_mutex_lock(&mutex_lock);
     if(ch == 's' && status == "idle"){
         Painter::updateObject(cursor, shop_row, shop_col[shop_idx]);
         Painter::updateScreen();
@@ -80,11 +80,11 @@ void Game::inputHandler(char ch) {
         else if(ch == '\n'){
             int pos_row = 1 + board_row * (HEIGHT / NR_ROW);
             int pos_col = 5 + board_col * (WIDTH / NR_COL);
-            if(shop_idx == 0) {
+            if(shop_idx == 0 && consumeSunshine(PEANUT_COST)) {
                 PeanutShooter* peanutShooter = new PeanutShooter(pos_row, pos_col);
                 addUnit(peanutShooter);
             }
-            else if(shop_idx == 1){
+            else if(shop_idx == 1 && consumeSunshine(SUNFLOWER_COST)){
                 Sunflower* sunflower = new Sunflower(pos_row, pos_col);
                 addUnit(sunflower);
             }
@@ -93,7 +93,7 @@ void Game::inputHandler(char ch) {
             status = "idle";
         }
     }
-    pthread_mutex_unlock(&mutex_lock);
+//    pthread_mutex_unlock(&mutex_lock);
 }
 
 void Game::addUnit(Unit* unit) {

@@ -15,6 +15,7 @@ using namespace std;
 
 #define PRI_BACKGROUND 0
 #define PRI_UNIT 1
+#define PRI_BULLET 2
 #define PRI_CURSOR 5
 
 #define WHITE 0xffffff
@@ -29,6 +30,14 @@ using namespace std;
 #define PURPLE 0x6600ff
 #define DARKPURPLE 0x330066
 #define BROWN 0x996666
+
+#define PEANUT_HP 100
+#define PEANUT_ATK 100
+#define PEANUT_COST 100
+
+#define SUNFLOWER_HP 50
+#define SUNFLOWER_ATK 0
+#define SUNFLOWER_COST 50
 
 class Pixel{
 public:

@@ -2,7 +2,7 @@
 #include "objects.h"
 #include "Painter.h"
 #include "Game.h"
-#include <unistd.h>
+
 
 
 void* listenKey(void* ptr){

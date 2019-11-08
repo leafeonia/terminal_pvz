@@ -19,7 +19,7 @@ private:
     string status;
     Cursor cursor;
     InfoBoard infoBoard;
-    pthread_mutex_t mutex_lock;
+//    pthread_mutex_t mutex_lock;
     static vector<Unit*> units;
 public:
     friend class InfoBoard;

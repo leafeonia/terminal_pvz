@@ -65,4 +65,9 @@ public:
     void clockHandler();
 };
 
+class Bullet: public Unit{
+public:
+    Bullet(int r,int c);
+    void clockHandler();
+};
 #endif //PVZ_OBJECTS_H

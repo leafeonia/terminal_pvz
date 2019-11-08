@@ -101,7 +101,8 @@ void InfoBoard::clockHandler() {
     Painter::updateObject(*this, row, col, tmp);
 }
 
-PeanutShooter::PeanutShooter(int r, int c):Plant(100, 100, 100) {
+
+PeanutShooter::PeanutShooter(int r, int c):Plant(PEANUT_HP, PEANUT_ATK, PEANUT_COST) {
     row = r;
     col = c;
     priority = PRI_UNIT;
@@ -124,9 +125,14 @@ PeanutShooter::PeanutShooter(int r, int c):Plant(100, 100, 100) {
 
 void PeanutShooter::clockHandler() {
     timer++;
+    if(timer == 10){
+        timer = 0;
+        Bullet *bullet = new Bullet(row + 1, col + 4);
+        Game::addUnit(bullet);
+    }
 }
 
-Sunflower::Sunflower(int r, int c): Plant(50, 0, 50) {
+Sunflower::Sunflower(int r, int c): Plant(SUNFLOWER_HP, SUNFLOWER_ATK, SUNFLOWER_COST) {
     row = r;
     col = c;
     priority = PRI_UNIT;
@@ -153,4 +159,20 @@ void Sunflower::clockHandler() {
         timer = 0;
         Game::addSunshine(50);
     }
+}
+
+Bullet::Bullet(int r, int c) {
+    row = r;
+    col = c;
+    priority = PRI_BULLET;
+    vector<Pixel> line;
+    for (int i = 0; i < 2; ++i) {
+        line.push_back(Pixel(' ', DEEPGREEN));
+    }
+    pixels.push_back(line);
+}
+
+void Bullet::clockHandler() {
+    col++;
+    Painter::updateObject(*this, row, col);
 }

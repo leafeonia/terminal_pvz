@@ -6,9 +6,11 @@
 #define PVZ_PAINTER_H
 
 #include "objects.h"
+#include <unistd.h>
 
 class Painter{
 private:
+    static pthread_mutex_t screen_lock;
     static vector<Object> objects;
     static vector<vector<Pixel>> board;
     static void drawObject(const Object &o);
