@@ -19,7 +19,6 @@ private:
     string status;
     Cursor cursor;
     InfoBoard infoBoard;
-//    pthread_mutex_t mutex_lock;
     static vector<Unit*> units;
 public:
     friend class InfoBoard;
@@ -27,9 +26,12 @@ public:
     void init_screen();
     void inputHandler(char ch);
     void sendTimeSignal();
+    static bool setAvailable(int r,int c);
     static void addUnit(Unit* unit);
+    static void deleteUnit(int unitId);
     static void addSunshine(int num);
     static bool consumeSunshine(int num);
+    void interaction();
     static void addScore(int num);
 };
 

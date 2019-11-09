@@ -30,9 +30,10 @@ using namespace std;
 #define PURPLE 0x6600ff
 #define DARKPURPLE 0x330066
 #define BROWN 0x996666
+#define GREY 0x4b4b4b
 
 #define PEANUT_HP 100
-#define PEANUT_ATK 100
+#define PEANUT_ATK 16
 #define PEANUT_COST 100
 
 #define SUNFLOWER_HP 50

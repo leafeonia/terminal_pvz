@@ -22,7 +22,7 @@ int main() {
     pthread_t t;
     pthread_create(&t, NULL, listenKey, (void*)(&g));
     while(1){
-        usleep(500000);
+        usleep(100000);
         g.sendTimeSignal();
     }
     return 0;

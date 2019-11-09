@@ -16,7 +16,7 @@ Game::Game():cursor(10000,10000) { //I'm so far far away that you can't see me~
 }
 
 int Game::score = 0;
-int Game::sunshine = 0;
+int Game::sunshine = 100;
 vector<Unit*> Game::units = vector<Unit*>();
 
 void Game::init_screen() {
@@ -29,6 +29,8 @@ void Game::init_screen() {
     Painter::addObject(Shop());
     Painter::addObject(cursor);
     addUnit(&infoBoard);
+    NormalZombie* normalZombie = new NormalZombie(1,50);
+    addUnit(normalZombie);
     Painter::updateScreen();
 }
 
@@ -80,11 +82,11 @@ void Game::inputHandler(char ch) {
         else if(ch == '\n'){
             int pos_row = 1 + board_row * (HEIGHT / NR_ROW);
             int pos_col = 5 + board_col * (WIDTH / NR_COL);
-            if(shop_idx == 0 && consumeSunshine(PEANUT_COST)) {
+            if(shop_idx == 0 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(PEANUT_COST) ) {
                 PeanutShooter* peanutShooter = new PeanutShooter(pos_row, pos_col);
                 addUnit(peanutShooter);
             }
-            else if(shop_idx == 1 && consumeSunshine(SUNFLOWER_COST)){
+            else if(shop_idx == 1 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(SUNFLOWER_COST) ){
                 Sunflower* sunflower = new Sunflower(pos_row, pos_col);
                 addUnit(sunflower);
             }
@@ -94,6 +96,13 @@ void Game::inputHandler(char ch) {
         }
     }
 //    pthread_mutex_unlock(&mutex_lock);
+}
+
+bool Game::setAvailable(int r, int c) {
+    for (int i = 0; i < units.size(); ++i) {
+        if (units[i]->row == r && units[i]->col == c) return false;
+    }
+    return true;
 }
 
 void Game::addUnit(Unit* unit) {
@@ -124,5 +133,56 @@ void Game::sendTimeSignal() {
     for(int i = 0;i < units.size();i++){
         units[i]->clockHandler();
     }
+    interaction();
     Painter::updateScreen();
+}
+
+void Game::interaction() {
+    vector<int> toBeDeleted;
+    for (int i = 0; i < units.size(); ++i) {
+        if (units[i]->type == "zombie"){
+            Zombie* zombie = dynamic_cast<Zombie*>(units[i]);
+            if(!zombie) continue;
+            for (int j = 0; j < units.size(); ++j) {
+                if(units[j]->type == "plant"){
+                    Plant* plant = dynamic_cast<Plant*>(units[j]);
+                    if(!plant) continue;
+                    if(plant->interactWithZombie(zombie)) toBeDeleted.push_back(units[j]->id);
+                }
+                else if(units[j]->type == "bullet"){
+                    Bullet* bullet = dynamic_cast<Bullet*>(units[j]);
+                    if(!bullet) continue;
+                    if(bullet->col > WIDTH || bullet->interactWithZombie(zombie)) toBeDeleted.push_back(units[j]->id);
+                }
+            }
+        }
+    }
+    for (int i = 0; i < units.size(); ++i) {
+        if (units[i]->type == "zombie"){
+            Zombie* zombie = dynamic_cast<Zombie*>(units[i]);
+            if(!zombie) continue;
+            if(zombie->updateHp()) toBeDeleted.push_back(units[i]->id);
+        }
+        else if (units[i]->type == "plant"){
+            Plant* plant = dynamic_cast<Plant*>(units[i]);
+            if(!plant) continue;
+            if(plant->updateHp()) toBeDeleted.push_back(units[i]->id);
+        }
+    }
+
+    for(auto unit: toBeDeleted) deleteUnit(unit);
+}
+
+void Game::deleteUnit(int unitId) {
+    int idx = 0;
+    while(idx < units.size()) {
+        if(units[idx]->id == unitId){
+            Unit* waste = units[idx];
+            units.erase(units.begin() + idx);
+            Painter::deleteObject(*waste);
+            delete waste;
+
+        }
+        else idx++;
+    }
 }

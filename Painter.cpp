@@ -80,3 +80,12 @@ vector<vector<Pixel> > Painter::pixmapGenerate(int row, int col, vector<char> ch
     }
     return ret;
 }
+
+void Painter::deleteObject(const Object &o) {
+    for(auto it = objects.begin();it != objects.end();it++){
+        if((*it).id == o.id){
+            objects.erase(it);
+            return;
+        }
+    }
+}

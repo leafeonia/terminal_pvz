@@ -17,9 +17,10 @@ Grassland::Grassland(int r, int c) {
     for (int i = 0; i < h; ++i) {
         vector<Pixel> line;
         if(i == h - 1){
-            for (int j = 0; j < w; ++j) {
+            for (int j = 0; j < w - 1; ++j) {
                 line.push_back(Pixel(' ', DARKGREEN));
             }
+            line.push_back(Pixel(' ', DEEPGREEN));
         }
         else{
             //line.push_back(Pixel(' ', DARKGREEN));
@@ -101,6 +102,23 @@ void InfoBoard::clockHandler() {
     Painter::updateObject(*this, row, col, tmp);
 }
 
+bool Plant::updateHp() {
+    if(hp <= 0) return true;
+    int width = pixels[0].size();
+    string s_hp = to_string(hp);
+    vector<Pixel> hp_bar;
+    for (int i = 0; i < width - s_hp.length(); ++i) {
+        hp_bar.push_back(Pixel(' ', RED));
+    }
+    for (int i = 0; i < s_hp.length(); ++i) {
+        hp_bar.push_back(Pixel(s_hp[i],RED));
+    }
+    for (int i = 0; i < s_hp.length(); ++i) {
+        pixels[pixels.size() - 1] = hp_bar;
+    }
+    Painter::updateObject(*this, row, col, pixels);
+    return false;
+}
 
 PeanutShooter::PeanutShooter(int r, int c):Plant(PEANUT_HP, PEANUT_ATK, PEANUT_COST) {
     row = r;
@@ -127,9 +145,19 @@ void PeanutShooter::clockHandler() {
     timer++;
     if(timer == 10){
         timer = 0;
-        Bullet *bullet = new Bullet(row + 1, col + 4);
+        Bullet *bullet = new Bullet(row + 1, col + 4, attack);
         Game::addUnit(bullet);
     }
+}
+
+bool PeanutShooter::interactWithZombie(Zombie* zombie) {
+    int zr = zombie->getRow();
+    int zc = zombie->getCol();
+    if(zr >= row - 2 && zr <= row && zc <= col + 5 && timer % 5 == 0) {
+        hp -= zombie->getAtk();
+        zombie->setMove(0);
+    }
+    return false;
 }
 
 Sunflower::Sunflower(int r, int c): Plant(SUNFLOWER_HP, SUNFLOWER_ATK, SUNFLOWER_COST) {
@@ -161,14 +189,25 @@ void Sunflower::clockHandler() {
     }
 }
 
-Bullet::Bullet(int r, int c) {
+bool Sunflower::interactWithZombie(Zombie *zombie) {
+    int zr = zombie->getRow();
+    int zc = zombie->getCol();
+    if(zr >= row - 2 && zr <= row && zc <= col + 4) {
+        hp -= zombie->getAtk();
+        zombie->setMove(0);
+    }
+    return false;
+}
+
+Bullet::Bullet(int r, int c, int a) {
     row = r;
     col = c;
+    atk = a;
     priority = PRI_BULLET;
+    type = "bullet";
     vector<Pixel> line;
-    for (int i = 0; i < 2; ++i) {
-        line.push_back(Pixel(' ', DEEPGREEN));
-    }
+    line.push_back(Pixel('(', DEEPGREEN));
+    line.push_back(Pixel(')', DEEPGREEN));
     pixels.push_back(line);
 }
 
@@ -176,3 +215,64 @@ void Bullet::clockHandler() {
     col++;
     Painter::updateObject(*this, row, col);
 }
+
+bool Bullet::interactWithZombie(Zombie *zombie) {
+    int zr = zombie->getRow();
+    int zc = zombie->getCol();
+    if(zr >= row - 2 && zr <= row && zc >= col - 1 && zc <= col) {
+        zombie->loseHp(atk);
+        return true;
+    }
+    return false;
+}
+
+bool Zombie::updateHp() {
+    if(hp <= 0) return true;
+    string s_hp = to_string(hp);
+    vector<Pixel> hp_bar;
+    for (int i = 0; i < 3 - s_hp.length(); ++i) {
+        hp_bar.push_back(Pixel(' ', RED));
+    }
+    for (int i = 0; i < s_hp.length(); ++i) {
+        hp_bar.push_back(Pixel(s_hp[i],RED));
+    }
+    for (int i = 0; i < s_hp.length(); ++i) {
+        pixels[pixels.size() - 1] = hp_bar;
+    }
+    Painter::updateObject(*this, row, col, pixels);
+    return false;
+}
+
+NormalZombie::NormalZombie(int r,int c):Zombie(500, 10, 5) {
+    row = r;
+    col = c;
+    priority = PRI_BULLET;
+    vector<char> chars = {
+            ' ','o',' ',
+            '/','x','\\',
+            ' ','|',' ',
+            '/',' ','\\',
+            '5','0','0'
+    };
+    vector<int> colors = {
+            GREEN,GREY,GREEN,
+            GREY,GREY,GREY,
+            GREEN,GREY,GREEN,
+            GREY,GREEN,GREY,
+            RED, RED, RED
+
+    };
+    pixels = Painter::pixmapGenerate(5, 3, chars, colors);
+}
+
+void NormalZombie::clockHandler() {
+    timer++;
+    if(timer == speed){
+        timer = 0;
+        if(move == 1) col--;
+        else if(move == 0) move = 1;
+        Painter::updateObject(*this, row, col);
+    }
+
+}
+
