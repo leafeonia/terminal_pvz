@@ -49,12 +49,12 @@ Shop::Shop() {
             }
         }
         else if(i == h / 2 - 1){
-            string s = "        peashooter        sunflower        garlic        wallnut        snowpea";
+            string s = "     peashooter     sunflower     garlic     wallnut     snowpea     thorn     pepper     watermelon";
             for (auto ch: s) line.push_back(Pixel(ch, DARKPURPLE));
             for (int j = s.length();j < WIDTH;j++) line.push_back(Pixel(' ', DARKPURPLE));
         }
         else if(i == h / 2 + 1){
-            string s = "           100                50             50             50            150  ";
+            string s = "        100             50          50          50         175        100       999          300 ";
             for (auto ch: s) line.push_back(Pixel(ch, DARKPURPLE));
             for (int j = s.length();j < WIDTH;j++) line.push_back(Pixel(' ', DARKPURPLE));
         }
@@ -80,7 +80,7 @@ Cursor::Cursor(int r, int c) {
 
 InfoBoard::InfoBoard() {
     row = HEIGHT + 2;
-    col = WIDTH - 30;
+    col = WIDTH - 32;
     priority = PRI_UNIT;
     vector<Pixel> line;
     for(auto ch: "sunshine: 0   score: 0") line.push_back(Pixel(ch, DARKPURPLE));
@@ -125,8 +125,8 @@ void PeanutShooter::clockHandler() {
     timer++;
     if(timer == 25){
         timer = 0;
-        Bullet *bullet = new Bullet(row + 1, col + 4, attack);
-        Game::addUnit(bullet);
+        Pea *pea = new Pea(row + 1, col + 4, attack);
+        Game::addUnit(pea);
     }
 }
 
@@ -239,16 +239,88 @@ bool SnowPea::interactWithZombie(Zombie *zombie) {
     return false;
 }
 
+Thorn::Thorn(int r, int c): Plant(THORN_HP, THORN_ATK, THORN_COST) {
+    row = r;
+    col = c;
+    priority = PRI_UNITPLUS;
+    pixels = Painter::pixmapGenerate(1, 6, thornChars, thornColor);
+}
+
+void Thorn::clockHandler() {timer++;}
+
+bool Thorn::updateHp() {return false;}
+
+bool Thorn::interactWithZombie(Zombie *zombie) {
+    int zr = zombie->getRow();
+    int zc = zombie->getCol();
+    if(zr >= row - 4 && zr <= row && zc >= col - 2 && zc <= col + 6) {
+        if(timer % 10 == 0) zombie->loseHp(attack);
+    }
+    return false;
+}
+
+Pepper::Pepper(int r, int c): Plant(PEPPER_HP, PEPPER_ATK, PEPPER_COST) {
+    row = r;
+    col = c;
+    priority = PRI_UNITPLUS;
+    pixels = Painter::pixmapGenerate(4,4,pepperChars,pepperColor);
+}
+
+void Pepper::clockHandler() {
+    timer++;
+};
+
+bool Pepper::updateHp() {
+    if(timer == 20) {
+        Painter::setFlame(row + 3, false);
+        return true;
+    }
+    return false;
+}
+
+bool Pepper::interactWithZombie(Zombie *zombie) {
+    if(timer == 10){
+        int zr = zombie->getRow();
+        if(zr >= row - 2 && zr <= row + 1) {
+            zombie->loseHp(10000);
+        }
+        Painter::setFlame(row + 3, true);
+    }
+    return false;
+}
+
+Watermelon::Watermelon(int r, int c): Plant(MELON_HP, MELON_ATK, MELON_COST) {
+    row = r;
+    col = c;
+    priority = PRI_UNIT;
+    pixels = Painter::pixmapGenerate(5, 5, watermelonChars, watermelonColors);
+}
+
+void Watermelon::clockHandler() {
+    timer++;
+    if(timer == 35){
+        timer = 0;
+        Melon *melon = new Melon(row, col + 4, attack);
+        Game::addUnit(melon);
+    }
+}
+
+bool Watermelon::interactWithZombie(Zombie *zombie) {
+    int zr = zombie->getRow();
+    int zc = zombie->getCol();
+    if(zr >= row - 2 && zr <= row && zc >= col - 2 && zc <= col + 5) {
+        if(timer % 10 == 0) hp -= zombie->getAtk();
+        if(zombie->getMove() == 100) zombie->setMove(0);
+    }
+    return false;
+}
+
 Bullet::Bullet(int r, int c, int a) {
     row = r;
     col = c;
     atk = a;
     priority = PRI_BULLET;
     type = "bullet";
-    vector<Pixel> line;
-    line.push_back(Pixel('(', DEEPGREEN));
-    line.push_back(Pixel(')', DEEPGREEN));
-    pixels.push_back(line);
 }
 
 void Bullet::clockHandler() {
@@ -266,17 +338,42 @@ bool Bullet::interactWithZombie(Zombie *zombie) {
     return false;
 }
 
-FrozenBullet::FrozenBullet(int r, int c, int a):Bullet(r,c,a) {}
+Pea::Pea(int r, int c, int a): Bullet(r, c, a) {
+    vector<Pixel> line;
+    line.push_back(Pixel('(', DEEPGREEN));
+    line.push_back(Pixel(')', DEEPGREEN));
+    pixels.push_back(line);
+}
+
+FrozenBullet::FrozenBullet(int r, int c, int a):Bullet(r,c,a) {
+    vector<Pixel> line;
+    line.push_back(Pixel('(', INDIGO));
+    line.push_back(Pixel(')', INDIGO));
+    pixels.push_back(line);
+}
 
 bool FrozenBullet::interactWithZombie(Zombie *zombie) {
     int zr = zombie->getRow();
     int zc = zombie->getCol();
     if(zr >= row - 2 && zr <= row && zc >= col - 1 && zc <= col) {
         zombie->loseHp(atk);
-        zombie->setSpeed(zombie->getSpeed() + 5);
+        zombie->getFrozen();
         return true;
     }
     return false;
+}
+
+Melon::Melon(int r, int c, int a): Bullet(r, c, a) {
+    vector<Pixel> line;
+    line.push_back(Pixel('/', DEEPGREEN));
+    line.push_back(Pixel('-', DARKGREEN));
+    line.push_back(Pixel('\\', DEEPGREEN));
+    pixels.push_back(line);
+    line.clear();
+    line.push_back(Pixel('\\', DEEPGREEN));
+    line.push_back(Pixel('_', DARKGREEN));
+    line.push_back(Pixel('/', DEEPGREEN));
+    pixels.push_back(line);
 }
 
 bool Zombie::updateHp() {
@@ -298,6 +395,17 @@ bool Zombie::updateHp() {
     }
     Painter::updateObject(*this, row, col, pixels);
     return false;
+}
+
+void Zombie::getFrozen() {
+    for(int i = 0; i < pixels.size();i++){
+        for (int j = 0; j < pixels[i].size(); ++j) {
+            if(pixels[i][j].back == GREY) pixels[i][j].back = BLUE;
+        }
+    }
+    if(slowed) return;
+    slowed = true;
+    speed += 5;
 }
 
 NormalZombie::NormalZombie(int r,int c):Zombie(NORMALZB_HP, NORMALZB_ATK, NORMALZB_SPEED, NORMALZB_SCORE) {
@@ -382,6 +490,157 @@ void ConeheadZombie::clockHandler() {
     }
     if(timer == speed){
         timer = 0;
+        if(move == 100) col--;
+        else if(move == 0) move = 100;
+        else if(move < 0){
+            row++;
+            move++;
+        }
+        else{
+            row--;
+            move--;
+        }
+        Painter::updateObject(*this, row, col);
+        if(col == 0){
+            Painter::updateScreen();
+            Painter::gameover();
+        }
+    }
+}
+
+FootballZombie::FootballZombie(int r, int c):Zombie(FBZB_HP, FBZB_ATK, FBZB_SPEED, FBZB_SCORE) {
+    row = r;
+    col = c;
+    priority = PRI_UNITPLUS;
+    pixels = Painter::pixmapGenerate(5, 3, footballZombieChars, footballZombieColor);
+}
+
+void FootballZombie::loseHp(int val) {
+    hp -= val / 3;
+}
+
+void FootballZombie::clockHandler() {
+    if(hp < 750){
+        pixels[3][0] = Pixel('/', GREY);
+    }
+    if(hp < 600){
+        pixels[3][2] = Pixel('\\', GREY);
+    }
+    if(hp < 450){
+        pixels[1][0] = Pixel('/', GREY);
+    }
+    if(hp < 300){
+        pixels[2][1] = Pixel('X', GREY);
+    }
+    if(hp < 150){
+        pixels[1][0] = Pixel(' ', GREEN);
+    }
+    timer++;
+    if(timer == speed){
+        timer = 0;
+        if(move == 100) col--;
+        else if(move == 0) move = 100;
+        else if(move < 0){
+            row++;
+            move++;
+        }
+        else{
+            row--;
+            move--;
+        }
+        Painter::updateObject(*this, row, col);
+        if(col == 0){
+            Painter::updateScreen();
+            Painter::gameover();
+        }
+    }
+}
+
+DancingKingZombie::DancingKingZombie(int r, int c): Zombie(DKZB_HP, NORMALZB_ATK, NORMALZB_SPEED, DKZB_SCORE) {
+    row = r;
+    col = c;
+    priority = PRI_UNIT;
+    pixels = Painter::pixmapGenerate(5, 3, dancingKingChars, dancingKingColor);
+}
+
+void DancingKingZombie::clockHandler() {
+    timer++;
+    if(timer % 500 == 200 && move == 100){
+        if(row > HEIGHT / NR_ROW) Game::addUnit(new DancingGuyZombie(row - HEIGHT / NR_ROW, col));
+        if(row < (NR_ROW - 1) * (HEIGHT / NR_ROW)) Game::addUnit(new DancingGuyZombie(row + HEIGHT / NR_ROW, col));
+        if(col > WIDTH / NR_COL) Game::addUnit(new DancingGuyZombie(row, col - WIDTH / NR_COL));
+        if(col + WIDTH / NR_COL < WIDTH) Game::addUnit(new DancingGuyZombie(row, col + WIDTH / NR_COL));
+    }
+    if(timer % 10 == 0){
+        if(pixels[1][0].ch == '/') pixels[1][0] = pixels[1][2] = Pixel('\\', PURPLE);
+        else pixels[1][0] = pixels[1][2] = Pixel('/', PURPLE);
+    }
+    if(timer % speed == 0){
+        if(move == 100) col--;
+        else if(move == 0) move = 100;
+        else if(move < 0){
+            row++;
+            move++;
+        }
+        else{
+            row--;
+            move--;
+        }
+        Painter::updateObject(*this, row, col);
+        if(col == 0){
+            Painter::updateScreen();
+            Painter::gameover();
+        }
+    }
+}
+
+DancingGuyZombie::DancingGuyZombie(int r, int c): Zombie(NORMALZB_HP, NORMALZB_ATK, NORMALZB_SPEED, NORMALZB_SCORE) {
+    row = r;
+    col = c;
+    priority = PRI_UNIT;
+    pixels = Painter::pixmapGenerate(5, 3, dancingGuyChars, dancingGuyColor);
+}
+
+void DancingGuyZombie::clockHandler() {
+    timer++;
+    if(timer % 10 == 0){
+        if(pixels[1][0].ch == '/') pixels[1][0].ch = pixels[1][2].ch = '\\';
+        else pixels[1][0].ch = pixels[1][2].ch = '/';
+    }
+    if(timer % speed == 0){
+        if(move == 100) col--;
+        else if(move == 0) move = 100;
+        else if(move < 0){
+            row++;
+            move++;
+        }
+        else{
+            row--;
+            move--;
+        }
+        Painter::updateObject(*this, row, col);
+        if(col == 0){
+            Painter::updateScreen();
+            Painter::gameover();
+        }
+    }
+}
+
+NewspaperZombie::NewspaperZombie(int r, int c): Zombie(NEWSZB_HP, NORMALZB_ATK, NEWSZB_SPEED, NEWSZB_SCORE) {
+    row = r;
+    col = c;
+    priority = PRI_UNIT;
+    pixels = Painter::pixmapGenerate(5, 3, newspaperZombieChar, newspaperZombieColor);
+}
+
+void NewspaperZombie::clockHandler() {
+    timer++;
+    if(hp < 200){
+        pixels[1][0] = Pixel('/',GREY);
+        pixels[1][1] = Pixel('x',GREY);
+        speed = 5;
+    }
+    if(timer % speed == 0){
         if(move == 100) col--;
         else if(move == 0) move = 100;
         else if(move < 0){

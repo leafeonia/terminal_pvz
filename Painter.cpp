@@ -7,6 +7,7 @@
 
 
 vector<Object> Painter::objects = vector<Object>();
+vector<bool> Painter::flame = vector<bool>(HEIGHT);
 vector<vector<Pixel>> Painter::board = vector<vector<Pixel>> (HEIGHT + SHOP_HEIGHT, vector<Pixel>(WIDTH));
 pthread_mutex_t Painter::screen_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -56,6 +57,13 @@ void Painter::updateScreen() {
     for(auto &object: objects) drawObject(object);
     printf("\033[H");
     for (int i = 0; i < HEIGHT + SHOP_HEIGHT; ++i) {
+        if(flame[i]){
+            for (int j = 0; j < WIDTH; ++j) {
+                cout << "\033[48;2;255;0;0m" << "^" << "\033[0m";
+            }
+            cout << endl;
+            continue;
+        }
         for (int j = 0; j < WIDTH; ++j) {
             int color = board[i][j].back;
             printf("\033[48;2;%d;%d;%dm",(color&0xff0000) >> 16, (color&0xff00) >> 8, color&0xff);
@@ -91,10 +99,15 @@ void Painter::deleteObject(const Object &o) {
     }
 }
 
+void Painter::setFlame(int row, bool on) {
+    flame[row] = on;
+}
+
 void Painter::gameover() {
     system("clear");
     cout << "zombie eats your brainnnnnnnnnnnnnnnnnnnnnnn" << endl << endl;
     cout << "score: " << Game::getScore() << endl;
+    cout << "\033[?25h" << endl;
     system("stty icanon echo");
     exit(0);
 }

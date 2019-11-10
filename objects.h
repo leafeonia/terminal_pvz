@@ -54,18 +54,19 @@ public:
 
 class Zombie: public Unit{
 protected:
-    int hp, attack, speed, move, score;
+    int hp, attack, speed, move, score, slowed;
 public:
-    Zombie(int h,int a,int sp, int sc){hp = h; attack = a;speed = sp; score = sc; move = 100; type = "zombie";}
+    Zombie(int h,int a,int sp, int sc){hp = h; attack = a;speed = sp; score = sc; slowed = false; move = 100; type = "zombie";}
     int getMove(){return move;}
     void setMove(int val){move = val;}
-    void setSpeed(int val){speed = val;}
-    int getSpeed(){return speed;}
-    int loseHp(int val){hp -= val;}
+//    void setSpeed(int val){speed = val;}
+//    int getSpeed(){return speed;}
+    virtual void loseHp(int val){hp -= val;}
     bool updateHp();
     int getAtk(){return attack;}
     int getRow(){return row;}
     int getCol(){return col;}
+    void getFrozen();
 };
 
 class NormalZombie: public Zombie{
@@ -80,9 +81,34 @@ public:
     void clockHandler();
 };
 
+class FootballZombie: public Zombie{
+public:
+    FootballZombie(int r,int c);
+    void clockHandler();
+    void loseHp(int val);
+};
+
 class ConeheadZombie: public Zombie{
 public:
     ConeheadZombie(int r,int c);
+    void clockHandler();
+};
+
+class DancingKingZombie: public Zombie{
+public:
+    DancingKingZombie(int r,int c);
+    void clockHandler();
+};
+
+class DancingGuyZombie: public Zombie{
+public:
+    DancingGuyZombie(int r,int c);
+    void clockHandler();
+};
+
+class NewspaperZombie: public Zombie{
+public:
+    NewspaperZombie(int r,int c);
     void clockHandler();
 };
 
@@ -91,7 +117,7 @@ protected:
     int hp, attack, cost;
 public:
     Plant(int h, int a, int c){hp = h; attack = a;cost = c; type = "plant";}
-    bool updateHp();
+    virtual bool updateHp();
     virtual bool interactWithZombie(Zombie* zombie)=0;
 };
 
@@ -124,9 +150,32 @@ public:
     bool interactWithZombie(Zombie* zombie);
 };
 
+class Thorn: public Plant{
+public:
+    Thorn(int r,int c);
+    void clockHandler();
+    bool interactWithZombie(Zombie* zombie);
+    bool updateHp();
+};
+
+class Pepper: public Plant{
+public:
+    Pepper(int r,int c);
+    void clockHandler();
+    bool interactWithZombie(Zombie* zombie);
+    bool updateHp();
+};
+
 class SnowPea: public Plant{
 public:
     SnowPea(int r,int c);
+    void clockHandler();
+    bool interactWithZombie(Zombie* zombie);
+};
+
+class Watermelon: public Plant{
+public:
+    Watermelon(int r,int c);
     void clockHandler();
     bool interactWithZombie(Zombie* zombie);
 };
@@ -140,12 +189,22 @@ public:
     virtual bool interactWithZombie(Zombie* zombie);
 };
 
+class Pea: public Bullet{
+public:
+    Pea(int r,int c,int a);
+};
+
 class FrozenBullet: public Bullet{
 public:
     FrozenBullet(int r,int c,int a);
     bool interactWithZombie(Zombie* zombie);
+    bool updateHp();
 };
 
+class Melon: public Bullet{
+public:
+    Melon(int r,int c,int a);
+};
 
 
 #endif //PVZ_OBJECTS_H

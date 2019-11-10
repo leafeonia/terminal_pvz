@@ -23,10 +23,10 @@ void restore_flash(){
 int main() {
     Game g;
     g.init_screen();
-//    cout << "\033[?25l" << endl;
+    cout << "\033[?25l" << endl;
     pthread_t t;
     pthread_create(&t, NULL, listenKey, (void*)(&g));
-//    atexit(restore_flash);
+    atexit(restore_flash);
     while(1){
         usleep(10000);
         g.sendTimeSignal();

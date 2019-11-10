@@ -52,7 +52,19 @@ using namespace std;
 
 #define SNOW_HP 100
 #define SNOW_ATK 35
-#define SNOW_COST 150
+#define SNOW_COST 175
+
+#define THORN_HP 1
+#define THORN_ATK 25
+#define THORN_COST 100
+
+#define PEPPER_HP 1
+#define PEPPER_ATK 1
+#define PEPPER_COST 999
+
+#define MELON_HP 100
+#define MELON_ATK 85
+#define MELON_COST 300
 
 #define NORMALZB_HP 300
 #define NORMALZB_ATK 10
@@ -64,6 +76,18 @@ using namespace std;
 
 #define CONEZB_HP 800
 #define CONEZB_SCORE 300
+
+#define FBZB_HP 900
+#define FBZB_ATK 15
+#define FBZB_SPEED 5
+#define FBZB_SCORE 666
+
+#define DKZB_HP 500
+#define DKZB_SCORE 300
+
+#define NEWSZB_HP 400
+#define NEWSZB_SPEED 10
+#define NEWSZB_SCORE 250
 
 class Pixel{
 public:

@@ -9,7 +9,7 @@ Game::Game():cursor(10000,10000) { //I'm so far far away that you can't see me~
     srand(time(NULL));
     status = "idle";
     shop_row = HEIGHT + SHOP_HEIGHT / 2 - 1;
-    shop_col = vector<int>{5, 23, 40, 54, 69};
+    shop_col = vector<int>{2, 17, 31, 42, 54, 66, 76, 87};
     shop_idx = board_row = board_col = 0;
 //    pthread_mutex_init(&mutex_lock, NULL);
     sunshine_timer = 0;
@@ -112,10 +112,22 @@ void Game::inputHandler(char ch) {
                     SnowPea* snowpea = new SnowPea(pos_row, pos_col);
                     addUnit(snowpea);
                 }
+                else if(shop_idx == 5 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(THORN_COST)){
+                    Thorn* thorn = new Thorn(pos_row + 4, pos_col);
+                    addUnit(thorn);
+                }
+                else if(shop_idx == 6 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(PEPPER_COST)){
+                    Pepper* pepper = new Pepper(pos_row + 1, pos_col);
+                    addUnit(pepper);
+                }
+                else if(shop_idx == 7 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(MELON_COST)){
+                    Watermelon* watermelon = new Watermelon(pos_row, pos_col);
+                    addUnit(watermelon);
+                }
             }
             else{
                 for (int i = 0; i < units.size(); ++i) {
-                    if(units[i]->type == "plant" && units[i]->row == pos_row && units[i]->col == pos_col){
+                    if(units[i]->type == "plant" && units[i]->row >= pos_row && units[i]->row <= pos_row + 4 && units[i]->col == pos_col){
                         deleteUnit(units[i]->id);
                         break;
                     }
@@ -159,7 +171,7 @@ void Game::sendTimeSignal() {
     sunshine_timer++;
     if(sunshine_timer == 100){
         sunshine_timer = 0;
-        if(difficulty > 1000) difficulty -= 100;
+        if(difficulty > 2000) difficulty -= 1;
         addSunshine(50);
     }
     for(int i = 0;i < units.size();i++){
@@ -222,7 +234,6 @@ void Game::deleteUnit(int unitId) {
 
 void Game::generateZombie() {
     if(zombie_wave > 0){
-//        cout << "Wait" << endl;
         zombie_wave--;
         if(zombie_wave % 50 == 0){
             for (int i = 0; i < NR_ROW; ++i) {
@@ -232,20 +243,22 @@ void Game::generateZombie() {
         return;
     }
     int random = rand() % difficulty;
-//    cout << random << endl;
     int row = 1 + random % 5 * HEIGHT / NR_ROW;
     if(random < 50){
-//        cout << "Normal" << endl;
         addUnit(new NormalZombie(row, WIDTH));
     }
-    else if(random < 60){
-//        cout << "Flag" << endl;
+    else if(random < 55){
         zombie_wave = 150;
         addUnit(new FlagZombie(1 + 2 * (HEIGHT / NR_ROW), WIDTH));
     }
     else if(random < 80){
-//        cout << "Cone" << endl;
         addUnit(new ConeheadZombie(row, WIDTH));
     }
-//    cout << random << endl;
+    else if(random < 90){
+        addUnit(new FootballZombie(row, WIDTH));
+    }
+    else if(random < 100){
+        addUnit(new DancingKingZombie(row, WIDTH));
+    }
+    else if(random < 110) addUnit(new NewspaperZombie(row, WIDTH));
 }
