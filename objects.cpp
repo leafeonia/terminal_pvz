@@ -5,6 +5,7 @@
 #include "objects.h"
 #include "Painter.h"
 #include "Game.h"
+#include "pixmap.h"
 
 int Object::cnt = 0;
 
@@ -47,22 +48,15 @@ Shop::Shop() {
                 line.push_back(Pixel(' ', colors[j % colors.size()]));
             }
         }
-        else if(i == h / 2){
-            for (int j = 0; j < 8; ++j) {
-                line.push_back(Pixel(' ', DARKPURPLE));
-            }
-            for (auto ch: "peanut shooter 100") {
-                line.push_back(Pixel(ch, DARKPURPLE));
-            }
-            for (int j = 0; j < 8; ++j) {
-                line.push_back(Pixel(' ', DARKPURPLE));
-            }
-            for (auto ch: "sunflower 50") {
-                line.push_back(Pixel(ch, DARKPURPLE));
-            }
-            for (int j = 16 + strlen("peanut shooter 100") + strlen("sunflower 50"); j < WIDTH; ++j) {
-                line.push_back(Pixel(' ', DARKPURPLE));
-            }
+        else if(i == h / 2 - 1){
+            string s = "        peashooter        sunflower        garlic        wallnut        snowpea";
+            for (auto ch: s) line.push_back(Pixel(ch, DARKPURPLE));
+            for (int j = s.length();j < WIDTH;j++) line.push_back(Pixel(' ', DARKPURPLE));
+        }
+        else if(i == h / 2 + 1){
+            string s = "           100                50             50             50            150  ";
+            for (auto ch: s) line.push_back(Pixel(ch, DARKPURPLE));
+            for (int j = s.length();j < WIDTH;j++) line.push_back(Pixel(' ', DARKPURPLE));
         }
         else{
             for (int j = 0; j < w; ++j) {
@@ -124,26 +118,12 @@ PeanutShooter::PeanutShooter(int r, int c):Plant(PEANUT_HP, PEANUT_ATK, PEANUT_C
     row = r;
     col = c;
     priority = PRI_UNIT;
-    vector<char> chars = {
-            '/','^','\\','_','_',
-            '\\','_','/','-','-',
-            ' ','|',' ',' ',' ',
-            'x','-','x',' ',' ',
-            ' ','1','0','0',' '
-    };
-    vector<int> colors = {
-            DEEPGREEN,DEEPGREEN,DEEPGREEN,DEEPGREEN,DEEPGREEN,
-            DEEPGREEN,DEEPGREEN,DEEPGREEN,DEEPGREEN,DEEPGREEN,
-            GREEN,DEEPGREEN,GREEN,GREEN,GREEN,
-            DEEPGREEN,DEEPGREEN,DEEPGREEN,GREEN,GREEN,
-            RED,RED,RED,RED,RED
-    };
-    pixels = Painter::pixmapGenerate(5,5,chars,colors);
+    pixels = Painter::pixmapGenerate(5,5,peanutChars,peanutColor);
 }
 
 void PeanutShooter::clockHandler() {
     timer++;
-    if(timer == 10){
+    if(timer == 25){
         timer = 0;
         Bullet *bullet = new Bullet(row + 1, col + 4, attack);
         Game::addUnit(bullet);
@@ -153,9 +133,9 @@ void PeanutShooter::clockHandler() {
 bool PeanutShooter::interactWithZombie(Zombie* zombie) {
     int zr = zombie->getRow();
     int zc = zombie->getCol();
-    if(zr >= row - 2 && zr <= row && zc <= col + 5 && timer % 5 == 0) {
-        hp -= zombie->getAtk();
-        zombie->setMove(0);
+    if(zr >= row - 2 && zr <= row && zc >= col - 2 && zc <= col + 5) {
+        if(timer % 10 == 0) hp -= zombie->getAtk();
+        if(zombie->getMove() == 100) zombie->setMove(0);
     }
     return false;
 }
@@ -164,26 +144,12 @@ Sunflower::Sunflower(int r, int c): Plant(SUNFLOWER_HP, SUNFLOWER_ATK, SUNFLOWER
     row = r;
     col = c;
     priority = PRI_UNIT;
-    vector<char> chars = {
-            'o','o','o',
-            'o','x','o',
-            'o','o','o',
-            '\\','|','/',
-            ' ','5','0'
-    };
-    vector<int> color = {
-            YELLOW,YELLOW,YELLOW,
-            YELLOW,BROWN,YELLOW,
-            YELLOW,YELLOW,YELLOW,
-            DEEPGREEN,DEEPGREEN,DEEPGREEN,
-            RED,RED,RED
-    };
-    pixels = Painter::pixmapGenerate(5,3,chars,color);
+    pixels = Painter::pixmapGenerate(5,3,sunflowerChars,sunflowerColor);
 }
 
 void Sunflower::clockHandler() {
     timer++;
-    if(timer == 10){
+    if(timer == 100){
         timer = 0;
         Game::addSunshine(50);
     }
@@ -192,9 +158,83 @@ void Sunflower::clockHandler() {
 bool Sunflower::interactWithZombie(Zombie *zombie) {
     int zr = zombie->getRow();
     int zc = zombie->getCol();
-    if(zr >= row - 2 && zr <= row && zc <= col + 4) {
-        hp -= zombie->getAtk();
-        zombie->setMove(0);
+    if(zr >= row - 2 && zr <= row && zc >= col - 2 && zc <= col + 3) {
+        if(timer % 10 == 0)hp -= zombie->getAtk();
+        if(zombie->getMove() == 100) zombie->setMove(0);
+    }
+    return false;
+}
+
+Garlic::Garlic(int r, int c): Plant(GARLIC_HP, GARLIC_ATK, GARLIC_COST) {
+    row = r;
+    col = c;
+    priority = PRI_UNIT;
+    protection_time = 10;
+    pixels = Painter::pixmapGenerate(4, 4, garlicChars, garlicColor);
+}
+
+void Garlic::clockHandler() {if(protection_time > 0) protection_time--;}
+
+bool Garlic::interactWithZombie(Zombie *zombie) {
+    int zr = zombie->getRow();
+    int zc = zombie->getCol();
+    if(zr == row - 1 && zc >= col - 2 && zc <= col + 4) {
+        if(protection_time == 0) {
+            hp -= zombie->getAtk();
+            protection_time = 10;
+        }
+        if(zr < (HEIGHT / NR_ROW)) zombie->setMove(-HEIGHT / NR_ROW); // FIRST LINE, MUST GO DOWN
+        else if(zr > (NR_ROW - 1) * (HEIGHT / NR_ROW)) zombie->setMove(HEIGHT / NR_ROW); //LAST LINE, MUST GO UP
+        else{
+            int coin = rand() % 2 * 2 - 1; //1 or -1
+            zombie->setMove(coin * (HEIGHT / NR_ROW));
+        }
+    }
+    return false;
+}
+
+Wallnut::Wallnut(int r, int c):Plant(WALLNUT_HP, WALLNUT_ATK, WALLNUT_COST) {
+    row = r;
+    col = c;
+    priority = PRI_UNIT;
+    pixels = Painter::pixmapGenerate(5, 5, wallnutChars, wallnutColor);
+}
+
+void Wallnut::clockHandler() {timer++;}
+
+bool Wallnut::interactWithZombie(Zombie *zombie) {
+    if(hp < 200) pixels[2][2] = Pixel('^',BROWN);
+    int zr = zombie->getRow();
+    int zc = zombie->getCol();
+    if(zr >= row - 2 && zr <= row && zc >= col - 2 && zc <= col + 5) {
+        if(timer % 10 == 0)hp -= zombie->getAtk();
+        if(zombie->getMove() == 100) zombie->setMove(0);
+    }
+    return false;
+}
+
+SnowPea::SnowPea(int r, int c): Plant(SNOW_HP, SNOW_ATK, SNOW_COST) {
+    row = r;
+    col = c;
+    priority = PRI_UNIT;
+    pixels = Painter::pixmapGenerate(5,5,peanutChars, snowpeaColor);
+}
+
+void SnowPea::clockHandler() {
+    timer++;
+    if(timer == 30){
+        timer = 0;
+        FrozenBullet *bullet = new FrozenBullet(row + 1, col + 4, attack);
+        Game::addUnit(bullet);
+    }
+}
+
+bool SnowPea::interactWithZombie(Zombie *zombie) {
+    int zr = zombie->getRow();
+    int zc = zombie->getCol();
+    if(zr >= row - 2 && zr <= row && zc >= col - 2 && zc <= col + 5) {
+        if(timer % 10 == 0) hp -= zombie->getAtk();
+        if(zombie->getMove() == 100) zombie->setMove(0);
     }
     return false;
 }
@@ -226,11 +266,28 @@ bool Bullet::interactWithZombie(Zombie *zombie) {
     return false;
 }
 
+FrozenBullet::FrozenBullet(int r, int c, int a):Bullet(r,c,a) {}
+
+bool FrozenBullet::interactWithZombie(Zombie *zombie) {
+    int zr = zombie->getRow();
+    int zc = zombie->getCol();
+    if(zr >= row - 2 && zr <= row && zc >= col - 1 && zc <= col) {
+        zombie->loseHp(atk);
+        zombie->setSpeed(zombie->getSpeed() + 5);
+        return true;
+    }
+    return false;
+}
+
 bool Zombie::updateHp() {
-    if(hp <= 0) return true;
+    if(hp <= 0) {
+        Game::addScore(score);
+        return true;
+    }
+    int width = pixels[0].size();
     string s_hp = to_string(hp);
     vector<Pixel> hp_bar;
-    for (int i = 0; i < 3 - s_hp.length(); ++i) {
+    for (int i = 0; i < width - s_hp.length(); ++i) {
         hp_bar.push_back(Pixel(' ', RED));
     }
     for (int i = 0; i < s_hp.length(); ++i) {
@@ -243,36 +300,102 @@ bool Zombie::updateHp() {
     return false;
 }
 
-NormalZombie::NormalZombie(int r,int c):Zombie(500, 10, 5) {
+NormalZombie::NormalZombie(int r,int c):Zombie(NORMALZB_HP, NORMALZB_ATK, NORMALZB_SPEED, NORMALZB_SCORE) {
     row = r;
     col = c;
-    priority = PRI_BULLET;
-    vector<char> chars = {
-            ' ','o',' ',
-            '/','x','\\',
-            ' ','|',' ',
-            '/',' ','\\',
-            '5','0','0'
-    };
-    vector<int> colors = {
-            GREEN,GREY,GREEN,
-            GREY,GREY,GREY,
-            GREEN,GREY,GREEN,
-            GREY,GREEN,GREY,
-            RED, RED, RED
-
-    };
-    pixels = Painter::pixmapGenerate(5, 3, chars, colors);
+    priority = PRI_UNIT;
+    pixels = Painter::pixmapGenerate(5, 3, normalZombieChars, normalZombieColor);
 }
 
 void NormalZombie::clockHandler() {
+    if(hp < 150){
+        pixels[1][2] = Pixel(' ', GREEN);
+    }
     timer++;
     if(timer == speed){
         timer = 0;
-        if(move == 1) col--;
-        else if(move == 0) move = 1;
+        if(move == 100) col--;
+        else if(move == 0) move = 100;
+        else if(move < 0){
+            row++;
+            move++;
+        }
+        else{
+            row--;
+            move--;
+        }
         Painter::updateObject(*this, row, col);
+        if(col == 0){
+            Painter::updateScreen();
+            Painter::gameover();
+        }
     }
 
 }
 
+FlagZombie::FlagZombie(int r, int c): Zombie(NORMALZB_HP, NORMALZB_ATK, FLAGZB_SPEED, FLAGZB_SCORE) {
+    row = r;
+    col = c;
+    priority = PRI_UNITPLUS;
+    pixels = Painter::pixmapGenerate(5, 4, flagZombieChars, flagZombieColor);
+}
+
+void FlagZombie::clockHandler() {
+    if(hp < 150){
+        pixels[1][3] = Pixel(' ', GREEN);
+    }
+    timer++;
+    if(timer == speed){
+        timer = 0;
+        if(move == 100) col--;
+        else if(move == 0) move = 100;
+        else if(move < 0){
+            row++;
+            move++;
+        }
+        else{
+            row--;
+            move--;
+        }
+        Painter::updateObject(*this, row, col);
+        if(col == 0){
+            Painter::updateScreen();
+            Painter::gameover();
+        }
+    }
+}
+
+ConeheadZombie::ConeheadZombie(int r, int c):Zombie(CONEZB_HP, NORMALZB_ATK, NORMALZB_SPEED, CONEZB_SCORE) {
+    row = r;
+    col = c;
+    priority = PRI_UNIT;
+    pixels = Painter::pixmapGenerate(5, 3, coneZombieChars,coneZombieColor);
+}
+
+void ConeheadZombie::clockHandler() {
+    timer++;
+    if(hp < 150){
+        pixels[1][2] = Pixel(' ', GREEN);
+    }
+    if(hp < NORMALZB_HP) {
+        pixels[0][1] = Pixel('o', GREY);
+    }
+    if(timer == speed){
+        timer = 0;
+        if(move == 100) col--;
+        else if(move == 0) move = 100;
+        else if(move < 0){
+            row++;
+            move++;
+        }
+        else{
+            row--;
+            move--;
+        }
+        Painter::updateObject(*this, row, col);
+        if(col == 0){
+            Painter::updateScreen();
+            Painter::gameover();
+        }
+    }
+}

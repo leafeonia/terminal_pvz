@@ -16,6 +16,8 @@ private:
     vector<int> shop_col;
     int shop_row;
     int sunshine_timer; //automatic sunshine
+    int zombie_wave;
+    int difficulty;
     string status;
     Cursor cursor;
     InfoBoard infoBoard;
@@ -32,7 +34,9 @@ public:
     static void addSunshine(int num);
     static bool consumeSunshine(int num);
     void interaction();
+    void generateZombie();
     static void addScore(int num);
+    static int getScore(){return score;}
 };
 
 #endif //PVZ_GAME_H

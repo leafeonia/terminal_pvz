@@ -17,7 +17,7 @@ public:
     Object(){id = cnt++;}
     friend class Painter;
     friend class Game;
-    bool operator < (const Object& o){return priority < o.priority;}
+    bool operator < (const Object& o){return priority == o.priority ? id < o.id : priority < o.priority;}
 };
 
 class Grassland: public Object{
@@ -54,11 +54,14 @@ public:
 
 class Zombie: public Unit{
 protected:
-    int hp, attack, speed, move;
+    int hp, attack, speed, move, score;
 public:
-    Zombie(int h,int a,int s){hp = h; attack = a;speed = s; move = 1; type = "zombie";}
+    Zombie(int h,int a,int sp, int sc){hp = h; attack = a;speed = sp; score = sc; move = 100; type = "zombie";}
+    int getMove(){return move;}
     void setMove(int val){move = val;}
-    void loseHp(int val){hp -= val;}
+    void setSpeed(int val){speed = val;}
+    int getSpeed(){return speed;}
+    int loseHp(int val){hp -= val;}
     bool updateHp();
     int getAtk(){return attack;}
     int getRow(){return row;}
@@ -68,6 +71,18 @@ public:
 class NormalZombie: public Zombie{
 public:
     NormalZombie(int r,int c);
+    void clockHandler();
+};
+
+class FlagZombie: public Zombie{
+public:
+    FlagZombie(int r,int c);
+    void clockHandler();
+};
+
+class ConeheadZombie: public Zombie{
+public:
+    ConeheadZombie(int r,int c);
     void clockHandler();
 };
 
@@ -94,13 +109,43 @@ public:
     bool interactWithZombie(Zombie* zombie);
 };
 
+class Garlic: public Plant{
+    int protection_time;
+public:
+    Garlic(int r,int c);
+    void clockHandler();
+    bool interactWithZombie(Zombie* zombie);
+};
+
+class Wallnut: public Plant{
+public:
+    Wallnut(int r,int c);
+    void clockHandler();
+    bool interactWithZombie(Zombie* zombie);
+};
+
+class SnowPea: public Plant{
+public:
+    SnowPea(int r,int c);
+    void clockHandler();
+    bool interactWithZombie(Zombie* zombie);
+};
+
 class Bullet: public Unit{
+protected:
     int atk;
 public:
     Bullet(int r,int c,int a);
     void clockHandler();
+    virtual bool interactWithZombie(Zombie* zombie);
+};
+
+class FrozenBullet: public Bullet{
+public:
+    FrozenBullet(int r,int c,int a);
     bool interactWithZombie(Zombie* zombie);
 };
+
 
 
 #endif //PVZ_OBJECTS_H

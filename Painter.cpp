@@ -3,6 +3,7 @@
 //
 
 #include "Painter.h"
+#include "Game.h"
 
 
 vector<Object> Painter::objects = vector<Object>();
@@ -88,4 +89,12 @@ void Painter::deleteObject(const Object &o) {
             return;
         }
     }
+}
+
+void Painter::gameover() {
+    system("clear");
+    cout << "zombie eats your brainnnnnnnnnnnnnnnnnnnnnnn" << endl << endl;
+    cout << "score: " << Game::getScore() << endl;
+    system("stty icanon echo");
+    exit(0);
 }

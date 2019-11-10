@@ -6,17 +6,20 @@
 #include "Painter.h"
 
 Game::Game():cursor(10000,10000) { //I'm so far far away that you can't see me~
+    srand(time(NULL));
     status = "idle";
-    shop_row = HEIGHT + SHOP_HEIGHT / 2;
-    shop_col = vector<int>{5, 32};
+    shop_row = HEIGHT + SHOP_HEIGHT / 2 - 1;
+    shop_col = vector<int>{5, 23, 40, 54, 69};
     shop_idx = board_row = board_col = 0;
 //    pthread_mutex_init(&mutex_lock, NULL);
     sunshine_timer = 0;
+    zombie_wave = 0;
+    difficulty = 5000;
 //    sunshine = score = 0;
 }
 
 int Game::score = 0;
-int Game::sunshine = 100;
+int Game::sunshine = 50;
 vector<Unit*> Game::units = vector<Unit*>();
 
 void Game::init_screen() {
@@ -29,17 +32,23 @@ void Game::init_screen() {
     Painter::addObject(Shop());
     Painter::addObject(cursor);
     addUnit(&infoBoard);
-    NormalZombie* normalZombie = new NormalZombie(1,50);
-    addUnit(normalZombie);
+//    NormalZombie* normalZombie = new NormalZombie(1,10);
+//    addUnit(normalZombie);
     Painter::updateScreen();
 }
 
 void Game::inputHandler(char ch) {
 //    pthread_mutex_lock(&mutex_lock);
-    if(ch == 's' && status == "idle"){
+    if(ch == 'b' && status == "idle"){
         Painter::updateObject(cursor, shop_row, shop_col[shop_idx]);
         Painter::updateScreen();
         status = "shop";
+    }
+    else if(ch == 'c' && status == "idle"){
+        Painter::updateObject(cursor, board_row * (HEIGHT / NR_ROW) + HEIGHT / NR_ROW / 2,
+                              board_col * (WIDTH / NR_COL) + WIDTH / NR_COL / 2);
+        Painter::updateScreen();
+        status = "uproot";
     }
     else if(status == "shop"){
         if(ch == 'd'){
@@ -64,7 +73,7 @@ void Game::inputHandler(char ch) {
             status = "idle";
         }
     }
-    else if(status == "set"){
+    else if(status == "set" || status == "uproot"){
         if(ch == 'x'){
             Painter::updateObject(cursor, 10000, 10000);
             Painter::updateScreen();
@@ -82,13 +91,35 @@ void Game::inputHandler(char ch) {
         else if(ch == '\n'){
             int pos_row = 1 + board_row * (HEIGHT / NR_ROW);
             int pos_col = 5 + board_col * (WIDTH / NR_COL);
-            if(shop_idx == 0 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(PEANUT_COST) ) {
-                PeanutShooter* peanutShooter = new PeanutShooter(pos_row, pos_col);
-                addUnit(peanutShooter);
+            if(status == "set"){
+                if(shop_idx == 0 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(PEANUT_COST) ) {
+                    PeanutShooter* peanutShooter = new PeanutShooter(pos_row, pos_col);
+                    addUnit(peanutShooter);
+                }
+                else if(shop_idx == 1 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(SUNFLOWER_COST) ){
+                    Sunflower* sunflower = new Sunflower(pos_row, pos_col);
+                    addUnit(sunflower);
+                }
+                else if(shop_idx == 2 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(GARLIC_COST)){
+                    Garlic* garlic = new Garlic(pos_row + 1, pos_col);
+                    addUnit(garlic);
+                }
+                else if(shop_idx == 3 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(WALLNUT_COST)){
+                    Wallnut* wallnut = new Wallnut(pos_row, pos_col);
+                    addUnit(wallnut);
+                }
+                else if(shop_idx == 4 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(SNOW_COST)){
+                    SnowPea* snowpea = new SnowPea(pos_row, pos_col);
+                    addUnit(snowpea);
+                }
             }
-            else if(shop_idx == 1 && Game::setAvailable(pos_row, pos_col) && consumeSunshine(SUNFLOWER_COST) ){
-                Sunflower* sunflower = new Sunflower(pos_row, pos_col);
-                addUnit(sunflower);
+            else{
+                for (int i = 0; i < units.size(); ++i) {
+                    if(units[i]->type == "plant" && units[i]->row == pos_row && units[i]->col == pos_col){
+                        deleteUnit(units[i]->id);
+                        break;
+                    }
+                }
             }
             Painter::updateObject(cursor, 10000, 10000);
             Painter::updateScreen();
@@ -100,7 +131,7 @@ void Game::inputHandler(char ch) {
 
 bool Game::setAvailable(int r, int c) {
     for (int i = 0; i < units.size(); ++i) {
-        if (units[i]->row == r && units[i]->col == c) return false;
+        if (units[i]->row == r && units[i]->col == c && units[i]->type == "plant") return false;
     }
     return true;
 }
@@ -126,15 +157,18 @@ void Game::addScore(int num) {
 
 void Game::sendTimeSignal() {
     sunshine_timer++;
-    if(sunshine_timer == 10){
+    if(sunshine_timer == 100){
         sunshine_timer = 0;
+        if(difficulty > 1000) difficulty -= 100;
         addSunshine(50);
     }
     for(int i = 0;i < units.size();i++){
         units[i]->clockHandler();
     }
     interaction();
+    generateZombie();
     Painter::updateScreen();
+//    generateZombie();
 }
 
 void Game::interaction() {
@@ -169,7 +203,6 @@ void Game::interaction() {
             if(plant->updateHp()) toBeDeleted.push_back(units[i]->id);
         }
     }
-
     for(auto unit: toBeDeleted) deleteUnit(unit);
 }
 
@@ -185,4 +218,34 @@ void Game::deleteUnit(int unitId) {
         }
         else idx++;
     }
+}
+
+void Game::generateZombie() {
+    if(zombie_wave > 0){
+//        cout << "Wait" << endl;
+        zombie_wave--;
+        if(zombie_wave % 50 == 0){
+            for (int i = 0; i < NR_ROW; ++i) {
+                addUnit(new NormalZombie(1 + i * (HEIGHT / NR_ROW), WIDTH));
+            }
+        }
+        return;
+    }
+    int random = rand() % difficulty;
+//    cout << random << endl;
+    int row = 1 + random % 5 * HEIGHT / NR_ROW;
+    if(random < 50){
+//        cout << "Normal" << endl;
+        addUnit(new NormalZombie(row, WIDTH));
+    }
+    else if(random < 60){
+//        cout << "Flag" << endl;
+        zombie_wave = 150;
+        addUnit(new FlagZombie(1 + 2 * (HEIGHT / NR_ROW), WIDTH));
+    }
+    else if(random < 80){
+//        cout << "Cone" << endl;
+        addUnit(new ConeheadZombie(row, WIDTH));
+    }
+//    cout << random << endl;
 }

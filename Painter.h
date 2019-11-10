@@ -21,6 +21,7 @@ public:
     static vector<vector<Pixel> > pixmapGenerate(int row, int col, vector<char> chars, vector<int> colors);
     static void deleteObject(const Object &o);
     static void updateScreen();
+    static void gameover();
 };
 
 
