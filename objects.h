@@ -59,8 +59,6 @@ public:
     Zombie(int h,int a,int sp, int sc){hp = h; attack = a;speed = sp; score = sc; slowed = false; move = 100; type = "zombie";}
     int getMove(){return move;}
     void setMove(int val){move = val;}
-//    void setSpeed(int val){speed = val;}
-//    int getSpeed(){return speed;}
     virtual void loseHp(int val){hp -= val;}
     bool updateHp();
     int getAtk(){return attack;}
@@ -198,7 +196,6 @@ class FrozenBullet: public Bullet{
 public:
     FrozenBullet(int r,int c,int a);
     bool interactWithZombie(Zombie* zombie);
-    bool updateHp();
 };
 
 class Melon: public Bullet{

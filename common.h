@@ -87,7 +87,7 @@ using namespace std;
 
 #define NEWSZB_HP 400
 #define NEWSZB_SPEED 10
-#define NEWSZB_SCORE 250
+#define NEWSZB_SCORE 200
 
 class Pixel{
 public:

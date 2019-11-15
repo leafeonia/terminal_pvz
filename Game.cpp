@@ -14,7 +14,7 @@ Game::Game():cursor(10000,10000) { //I'm so far far away that you can't see me~
 //    pthread_mutex_init(&mutex_lock, NULL);
     sunshine_timer = 0;
     zombie_wave = 0;
-    difficulty = 5000;
+    difficulty = 15000;
 //    sunshine = score = 0;
 }
 
@@ -143,7 +143,7 @@ void Game::inputHandler(char ch) {
 
 bool Game::setAvailable(int r, int c) {
     for (int i = 0; i < units.size(); ++i) {
-        if (units[i]->row == r && units[i]->col == c && units[i]->type == "plant") return false;
+        if (units[i]->row / (HEIGHT / NR_ROW) == r / (HEIGHT / NR_ROW) && units[i]->col == c && units[i]->type == "plant") return false;
     }
     return true;
 }
@@ -169,9 +169,8 @@ void Game::addScore(int num) {
 
 void Game::sendTimeSignal() {
     sunshine_timer++;
-    if(sunshine_timer == 100){
-        sunshine_timer = 0;
-        if(difficulty > 2000) difficulty -= 1;
+    if(sunshine_timer % 100 == 0){
+        if(difficulty > 2000) difficulty -= 500;
         addSunshine(50);
     }
     for(int i = 0;i < units.size();i++){
@@ -247,18 +246,18 @@ void Game::generateZombie() {
     if(random < 50){
         addUnit(new NormalZombie(row, WIDTH));
     }
-    else if(random < 55){
+    else if(random < 55 && sunshine_timer > 500){
         zombie_wave = 150;
         addUnit(new FlagZombie(1 + 2 * (HEIGHT / NR_ROW), WIDTH));
     }
-    else if(random < 80){
+    else if(random < 80 && sunshine_timer > 200){
         addUnit(new ConeheadZombie(row, WIDTH));
     }
-    else if(random < 90){
+    else if(random < 90 & sunshine_timer > 500){
         addUnit(new FootballZombie(row, WIDTH));
     }
-    else if(random < 100){
+    else if(random < 100 && sunshine_timer > 400){
         addUnit(new DancingKingZombie(row, WIDTH));
     }
-    else if(random < 110) addUnit(new NewspaperZombie(row, WIDTH));
+    else if(random < 110 && sunshine_timer > 100) addUnit(new NewspaperZombie(row, WIDTH));
 }
